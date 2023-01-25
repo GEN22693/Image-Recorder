@@ -8,10 +8,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.2.45"
+    "vue": "^3.2.45",
+    "vue-media-recorder": "^0.1.25"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",
+    "sass": "^1.57.1",
     "vite": "^4.0.0"
   }
 }
