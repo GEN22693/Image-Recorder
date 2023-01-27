@@ -1,3 +1,4 @@
+
 <script setup>
 import ImageRecorder from './components/ImageRecorder.vue';
 </script>
