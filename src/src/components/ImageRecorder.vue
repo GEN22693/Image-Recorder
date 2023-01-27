@@ -19,7 +19,7 @@
       <button
         :class="'btn flex-center ' + buttonsClasses"
         @click.prevent="capture"
-        v-if="showVideo"
+        v-if="showVideo" id="snap-button"
       >
         {{ captureBtnContent }}
       </button>
@@ -63,7 +63,7 @@ export default {
       default: "",
     },
     captureBtnContent: {
-      default: "Capture",
+      default: "",
     },
     cancelBtnContent: {
       default: "Cancel",
