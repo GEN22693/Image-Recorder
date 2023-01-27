@@ -7,7 +7,14 @@
       autoplay
       playsinline
     />
-    <canvas v-show="!showVideo" id="canvas" class="preview" ref="canvas" />
+    <canvas
+      v-show="!showVideo"
+      id="canvas"
+      class="preview"
+      ref="canvas"
+      width="800"
+      height="600"
+    />
     <div v-if="!hideBtns" class="center photo-capture-actions">
       <button
         :class="'btn flex-center ' + buttonsClasses"
@@ -62,7 +69,7 @@ export default {
       default: "Cancel",
     },
     doneBtnContent: {
-      default: "Save"
+      default: "Save",
     },
     drawPenBtnContent: {
       default: "Markieren",
@@ -96,20 +103,19 @@ export default {
       this.showVideo = false;
       this.canvasElement.width = this.videoPlayer.videoWidth;
       this.canvasElement.height = this.videoPlayer.videoHeight;
-
       var context = this.canvasElement.getContext("2d");
-
       context.drawImage(this.$refs.player, 0, 0);
-
       this.stopVideoStream();
       this.picture = this.$refs.canvas.toDataURL();
     },
     done() {
+      isActive = false;
       this.$emit("input", this.picture);
       this.showVideo = true;
       this.streamUserMediaVideo();
     },
     cancel() {
+      isActive = false;
       this.showVideo = true;
       this.streamUserMediaVideo();
     },
@@ -120,42 +126,44 @@ export default {
       });
     },
     drawPen() {
-      var active = true;
-      const canvas = document.getElementById("canvas");
+      var isActive = true;
+      const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
-
-      let isDrawing = false;
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 4;
       let startX, startY;
-
+      
       canvas.addEventListener("mousedown", startDraw);
       canvas.addEventListener("mousemove", draw);
       canvas.addEventListener("mouseup", stopDraw);
       canvas.addEventListener("mouseleave", stopDraw);
+      canvas.addEventListener("touchmove", draw);
+      canvas.addEventListener("touchend", stopDraw);
+
+      let isDrawing = false;
+       isActive = false;
 
       function startDraw(e) {
-        if ((active = true)) {
-          isDrawing = true;
-          startX = e.clientX;
-          startY = e.clientY;
-          ctx.moveTo(startX, startY);
-        }
+        isDrawing = true;
+        isActive = true;
+        startX = e.clientX - canvas.offsetLeft;
+        startY = e.clientY - canvas.offsetTop;
       }
 
       function draw(e) {
-        if ((active = true)) {
-          if (!isDrawing) return;
-          ctx.lineTo(e.clientX, e.clientY);
-          ctx.stroke();
-        }
+        if (!isDrawing || !isActive) return;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        ctx.stroke();
+        startX = e.clientX - canvas.offsetLeft;
+        startY = e.clientY - canvas.offsetTop;
       }
 
       function stopDraw() {
-        if ((active = true)) {
-          isDrawing = false;
-        }
+        isDrawing = false;
+        isActive = false;
       }
-
-      console.log(active);
     },
   },
 };
