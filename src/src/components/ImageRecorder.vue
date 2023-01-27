@@ -47,7 +47,7 @@ export default {
       default: "Cancel"
     },
     doneBtnContent: {
-      default: "OK"
+      default: "Save"
     }
   },
   data() {
