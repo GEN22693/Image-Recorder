@@ -109,13 +109,11 @@ export default {
       this.picture = this.$refs.canvas.toDataURL();
     },
     done() {
-      isActive = false;
       this.$emit("input", this.picture);
       this.showVideo = true;
       this.streamUserMediaVideo();
     },
     cancel() {
-      isActive = false;
       this.showVideo = true;
       this.streamUserMediaVideo();
     },
@@ -140,8 +138,8 @@ export default {
       canvas.addEventListener("touchmove", draw);
       canvas.addEventListener("touchend", stopDraw);
 
-      let isDrawing = false;
-       isActive = false;
+    let isDrawing = false;
+     isActive = false;
 
       function startDraw(e) {
         isDrawing = true;
