@@ -167,6 +167,7 @@ export default {
   },
 };
 
+
 /* window.addEventListener("load", () => {
   const canvas = document.querySelector("#canvas")
   const ctx = canvas.getContext("2D")
@@ -196,3 +197,12 @@ export default {
 
 }); */
 </script>
+<style>
+.camera {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: contrast(1.5);
+  transition: filter 0.2s ease-in;
+}
+</style>
