@@ -36,7 +36,11 @@
   </section>
 </template>
 
+
 <script>
+let markierenButtonPressed = false;
+let isActive = false;
+
 export default {
   name: "PhotoCapture",
   props: {
@@ -106,29 +110,20 @@ export default {
       this.stopVideoStream();
       this.picture = this.$refs.canvas.toDataURL();
     },
-    done() {
-      this.$emit("input", this.picture);
-      this.showVideo = true;
-      this.streamUserMediaVideo();
-    },
-    cancel() {
-      this.showVideo = true;
-      this.streamUserMediaVideo();
-    },
     stopVideoStream() {
       if (!(this.$refs.player && this.$refs.player.srcObject)) return;
       this.$refs.player.srcObject.getVideoTracks().forEach((track) => {
         track.stop();
       });
     },
-    drawPen() {
-      var isActive = true;
+    drawPen(){
+      markierenButtonPressed = true;
       const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
       ctx.strokeStyle = "red";
       ctx.lineWidth = 4;
       let startX, startY;
-      
+
       canvas.addEventListener("mousedown", startDraw);
       canvas.addEventListener("mousemove", draw);
       canvas.addEventListener("mouseup", stopDraw);
@@ -136,18 +131,14 @@ export default {
       canvas.addEventListener("touchmove", draw);
       canvas.addEventListener("touchend", stopDraw);
 
-    let isDrawing = false;
-     isActive = false;
-
       function startDraw(e) {
-        isDrawing = true;
         isActive = true;
         startX = e.clientX - canvas.offsetLeft;
         startY = e.clientY - canvas.offsetTop;
       }
 
       function draw(e) {
-        if (!isDrawing || !isActive) return;
+        if (!markierenButtonPressed || !isActive) return;
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
@@ -157,9 +148,19 @@ export default {
       }
 
       function stopDraw() {
-        isDrawing = false;
         isActive = false;
       }
+    },
+    done() {
+      this.$emit("input", this.picture);
+      this.showVideo = true;
+      this.streamUserMediaVideo();
+      markierenButtonPressed = false;
+    },
+    cancel() {
+      this.showVideo = true;
+      this.streamUserMediaVideo();
+      markierenButtonPressed = false;
     },
   },
 };
