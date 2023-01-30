@@ -1,5 +1,5 @@
 <template>
-  <section :style="styling" v-if="isValid" class="photo-capture">
+  <section :style="styling" v-if="isValid" class="photo-capture" style="text-align: center;">
     <video
       v-show="showVideo"
       ref="player"
@@ -13,7 +13,7 @@
       class="preview"
       ref="canvas"
     />
-    <div v-if="!hideBtns" class="center photo-capture-actions">
+    <div v-if="!hideBtns" class="center photo-capture-actions" style="text-align: center;">
       <button
         :class="'btn flex-center ' + buttonsClasses"
         @click.prevent="capture"
@@ -21,7 +21,7 @@
       >
         {{ captureBtnContent }}
       </button>
-      <div class="controls" v-else>
+      <div class="controls" v-else style="text-align: center;">
         <button :class="'btn ' + buttonsClasses" @click.prevent="cancel" id="cancelBtn">
           {{ cancelBtnContent }}
         </button>
@@ -194,3 +194,14 @@ export default {
 
 }); */
 </script>
+<style>
+.camera {
+  width: 50%;
+  height: 50%;
+  object-fit: cover;
+  filter: contrast(1.5);
+  transition: filter 0.4s ease-in;
+}
+
+
+</style>
