@@ -12,8 +12,6 @@
       id="canvas"
       class="preview"
       ref="canvas"
-      width="800"
-      height="600"
     />
     <div v-if="!hideBtns" class="center photo-capture-actions">
       <button
@@ -24,13 +22,13 @@
         {{ captureBtnContent }}
       </button>
       <div class="controls" v-else>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="cancel">
+        <button :class="'btn ' + buttonsClasses" @click.prevent="cancel" id="cancelBtn">
           {{ cancelBtnContent }}
         </button>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="done">
+        <button :class="'btn ' + buttonsClasses" @click.prevent="done" id="doneBtn">
           {{ doneBtnContent }}
         </button>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="drawPen">
+        <button :class="'btn ' + buttonsClasses" @click.prevent="drawPen" id="drawBtn">
           {{ drawPenBtnContent }}
         </button>
       </div>

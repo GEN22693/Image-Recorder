@@ -11,8 +11,6 @@ import ImageRecorder from './components/ImageRecorder.vue';
 
 <style scoped>
 main {
-    max-width: 1000px;
-    max-height: 562px;
-    margin:auto;
+ align-self:center;
 }
 </style>

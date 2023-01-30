@@ -11,7 +11,7 @@ html, body {
     height: 70px;
     position: relative; /* allow for absolute positioning of the icon */
     border-color: transparent;
-    margin-left: 280px;
+    margin-left: 380px;
 }
 
 #snap-button:before {
@@ -42,4 +42,52 @@ html, body {
 
   #snap-button:hover {
     animation: pulse 0.8s infinite;
+  }
+
+  #cancelBtn {
+    padding: 10px 20px;
+    border-radius: 20px;
+    background-color: rgb(169, 169, 180);
+    color: white;
+    font-size: 18px;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  #cancelBtn:hover {
+    background-color: navy;
+    cursor: pointer;
+  }
+  #doneBtn {
+    padding: 10px 20px;
+    border-radius: 20px;
+    background-color:rgb(169, 169, 180);
+    color: white;
+    font-size: 18px;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  #doneBtn:hover {
+    background-color: navy;
+    cursor: pointer;
+  }
+  
+  #drawBtn {
+    padding: 10px 20px;
+    border-radius: 20px;
+    background-color: rgb(169, 169, 180);
+    color: white;
+    font-size: 18px;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  #drawBtn:hover {
+    background-color: navy;
+    cursor: pointer;
+  }
+
+  video {
+    width:850px;
   }
