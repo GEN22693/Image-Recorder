@@ -210,11 +210,13 @@ export default {
       this.showVideo = true;
       this.streamUserMediaVideo();
       markierenButtonPressed = false;
+      isCircleDraw = false;
     },
     cancel() {
       this.showVideo = true;
       this.streamUserMediaVideo();
       markierenButtonPressed = false;
+      isCircleDraw = false;
     },
   },
 };
