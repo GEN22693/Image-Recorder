@@ -1,5 +1,5 @@
 <template>
-  <section :style="styling" v-if="isValid" class="photo-capture" style="text-align: center;">
+  <div class="ir_container" v-if="isValid">
     <video
       v-show="showVideo"
       ref="player"
@@ -7,35 +7,29 @@
       autoplay
       playsinline
     />
-    <canvas
-      v-show="!showVideo"
-      id="canvas"
-      class="preview"
-      ref="canvas"
-    />
-    <div v-if="!hideBtns" class="center photo-capture-actions" style="text-align: center;">
-      <button
-        :class="'btn flex-center ' + buttonsClasses"
-        @click.prevent="capture"
-        v-if="showVideo" id="snap-button"
-      >
-        {{ captureBtnContent }}
-      </button>
-      <div class="controls" v-else style="text-align: center;">
-        <button :class="'btn ' + buttonsClasses" @click.prevent="cancel" id="cancelBtn">
-          {{ cancelBtnContent }}
+    <canvas v-show="!showVideo" id="canvas" class="preview" ref="canvas" />
+    <div class="ir_snapbar">
+      <div class="ir_snapbtndiv" v-if="!hideBtns">
+        <button
+          class="ir_snapbtn"
+          @click.prevent="capture"
+          v-if="showVideo"
+        ></button>
+        <div class="controls" v-else>
+        <button :class="'btn ' + buttonsClasses" @click.prevent="cancel" id="cancel">
+          
         </button>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="done" id="doneBtn">
-          {{ doneBtnContent }}
+        <button :class="'btn ' + buttonsClasses" @click.prevent="done" id="done">
+          
         </button>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="drawPen" id="drawBtn">
-          {{ drawPenBtnContent }}
+        <button :class="'btn ' + buttonsClasses" @click.prevent="drawPen" id="draw">
+          
         </button>
       </div>
+      </div>
     </div>
-  </section>
+  </div>
 </template>
-
 
 <script>
 let markierenButtonPressed = false;
@@ -65,7 +59,7 @@ export default {
       default: "",
     },
     captureBtnContent: {
-      default: "",
+      default: "Capture",
     },
     cancelBtnContent: {
       default: "Cancel",
@@ -116,7 +110,7 @@ export default {
         track.stop();
       });
     },
-    drawPen(){
+    drawPen() {
       markierenButtonPressed = true;
       const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
@@ -194,14 +188,82 @@ export default {
 
 }); */
 </script>
+
 <style>
-.camera {
-  width: 50%;
-  height: 50%;
-  object-fit: cover;
-  filter: contrast(1.5);
-  transition: filter 0.4s ease-in;
+.ir_container {
+  height: 100vh;
+  width: 100%;
+  background-color: black;
+  position: absolute;
 }
 
+.camera {
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+}
 
+.preview {
+  position: absolute;
+  width: 50%;
+  left: 25%;
+}
+
+.ir_snapbar {
+  position: relative;
+  height: 60px;
+  margin-top: 650px;
+  background-color: white;
+  margin-left: auto;
+  margin-right: auto;
+  width: 300px;
+  border-radius: 15px;
+}
+
+.ir_snapbtndiv {
+  position: relative;
+  height: 50px;
+  width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: transparent;
+  top: 5px;
+}
+
+.ir_snapbtn {
+  position: relative;
+  height: 50px;
+  width: 50px;
+  margin-left: 115px;
+  border-radius: 100px;
+  border: 0px transparent;
+  background-color: aquamarine;
+}
+
+#cancel {
+    height: 50px;
+    width: 50px;
+    border-radius: 100px;
+    border: 0px transparent;
+    margin-left: 50px;
+    margin-right: 15px;
+    background-color: red;
+}
+
+#done {
+    height: 50px;
+    width: 50px;
+    border-radius: 100px;
+    border: 0px transparent;
+    margin-right: 15px;
+    background-color: green;
+}
+
+#draw {
+    height: 50px;
+    width: 50px;
+    border-radius: 100px;
+    border: 0px transparent;
+    background-color: orange;
+}
 </style>

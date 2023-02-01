@@ -11,6 +11,6 @@ import ImageRecorder from './components/ImageRecorder.vue';
 
 <style scoped>
 main {
- align-self:center;
+    width: 100%;
 }
 </style>
