@@ -30,8 +30,15 @@
         <button :class="'btn ' + buttonsClasses" @click.prevent="done">
           {{ doneBtnContent }}
         </button>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="drawRectangle">
-          {{ drawRectangleBtnContent }}
+        <button :class="'btn ' + buttonsClasses" @click.prevent="drawPen">
+          {{ drawPenBtnContent }}
+        </button>
+        <button
+          :class="'btn ' + buttonsClasses"
+          @click.prevent="drawRect"
+          id="drawRectBtn"
+        >
+          {{ drawRectBtnContent }}
         </button>
       </div>
     </div>
@@ -41,7 +48,7 @@
 <script>
 let markierenButtonPressed = false;
 let isActive = false;
-let isCircleDraw = false;
+let isRectDraw = false;
 export default {
   name: "PhotoCapture",
   props: {
@@ -74,7 +81,11 @@ export default {
     doneBtnContent: {
       default: "Save",
     },
-    drawRectangleBtnContent: {
+    drawPenBtnContent: {
+      default: "Markieren",
+    },
+
+    drawRectBtnContent: {
       default: "Rechteck",
     },
   },
@@ -117,62 +128,104 @@ export default {
         track.stop();
       });
     },
-    drawRectangle() {
-      let canvasImage;
-      let isRectangleDraw = false;
-      let isActive = false;
-      let startX, startY, endX, endY;
+    drawPen() {
+      markierenButtonPressed = true;
       const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
       ctx.strokeStyle = "red";
       ctx.lineWidth = 4;
+      let startX, startY;
 
-      canvas.addEventListener("mousedown", startRectangleDraw);
-      canvas.addEventListener("mouseup", stopRectangleDraw);
-      canvas.addEventListener("mouseleave", stopRectangleDraw);
-      canvas.addEventListener("mousemove", drawRectangle);
+      canvas.addEventListener("mousedown", startDraw);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDraw);
+      canvas.addEventListener("mouseleave", stopDraw);
+      canvas.addEventListener("touchmove", draw);
+      canvas.addEventListener("touchend", stopDraw);
 
-      function startRectangleDraw(e) {
+      function startDraw(e) {
         isActive = true;
         startX = e.clientX - canvas.offsetLeft;
         startY = e.clientY - canvas.offsetTop;
       }
 
-      function drawRectangle(e) {
-        if (!isRectangleDraw || !isActive) return;
-
-        endX = e.clientX - canvas.offsetLeft;
-        endY = e.clientY - canvas.offsetTop;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (canvasImage) {
-          ctx.drawImage(canvasImage, 0, 0);
-        }
-
+      function draw(e) {
+        if (!markierenButtonPressed || !isActive) return;
         ctx.beginPath();
-        ctx.rect(startX, startY, endX - startX, endY - startY);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
         ctx.stroke();
+        startX = e.clientX - canvas.offsetLeft;
+        startY = e.clientY - canvas.offsetTop;
       }
 
-      function stopRectangleDraw() {
+      function stopDraw() {
         isActive = false;
-        isRectangleDraw = true;
-        canvasImage = new Image();
-        canvasImage.src = canvas.toDataURL();
+        markierenButtonPressed=false;
       }
     },
+
+
+    drawRect() {
+
+      let canvasImage = this.$refs.canvas;
+let isRectDraw = true;
+let isActive = true;
+let startX, startY, endX, endY;
+const canvas = this.$refs.canvas;
+const ctx = canvas.getContext("2d");
+ctx.strokeStyle = "Red  ";
+ctx.lineWidth = 4;
+
+canvas.addEventListener("mousedown", startRectDraw);
+canvas.addEventListener("mouseup", stopRectDraw);
+canvas.addEventListener("mouseleave", stopRectDraw); 
+canvas.addEventListener("mousemove", drawRect);
+
+function startRectDraw(e) {
+  isActive = true;
+  startX = e.clientX - canvas.offsetLeft;
+  startY = e.clientY - canvas.offsetTop;
+}
+
+function drawRect(e) {
+  if (!isRectDraw || !isActive) return;
+
+  endX = e.clientX - canvas.offsetLeft;
+  endY = e.clientY - canvas.offsetTop;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (canvasImage) {
+    ctx.drawImage(canvasImage, 0, 0);
+  }
+
+  ctx.beginPath();
+  ctx.rect(startX, startY, endX - startX, endY - startY);
+  ctx.stroke();
+}
+
+function stopRectDraw() {
+  isActive = false;
+  isRectDraw = false;
+  canvasImage = new Image();
+  canvasImage.src = canvas.toDataURL();
+}
+
+},
     done() {
       this.$emit("input", this.picture);
       this.showVideo = true;
       this.streamUserMediaVideo();
       markierenButtonPressed = false;
-      isCircleDraw = false;
+      isRectDrawDraw = false;
     },
     cancel() {
       this.showVideo = true;
       this.streamUserMediaVideo();
       markierenButtonPressed = false;
-      isCircleDraw = false;
+      this.ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      stopRectDraw();
+      stopDraw();
     },
   },
 };

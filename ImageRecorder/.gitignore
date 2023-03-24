@@ -1,0 +1,9 @@
+**/.vs
+**/.vscode
+**/node_modules
+**/bin
+**/obj
+**/dist
+**/yarn.lock
+
+azure_secrets.txt
