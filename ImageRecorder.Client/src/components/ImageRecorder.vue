@@ -1,54 +1,53 @@
 <template>
   <section :style="styling" v-if="isValid" class="photo-capture">
-    <video
+    <div class="imgrec-content">
+      <div class="imgrec-video">
+      <video
       v-show="showVideo"
       ref="player"
       class="camera"
       autoplay
       playsinline
-    />
+    /></div>
+    <div class="imgrec-preview">
     <canvas
       v-show="!showVideo"
       id="canvas"
       class="preview"
       ref="canvas"
-      width="800"
-      height="600"
-    />
-    <div v-if="!hideBtns" class="center photo-capture-actions">
+      @mousedown="onMouseDown"
+      @mouseup="onMouseUp"
+      @mouseleave="onMouseLeave"
+      @mousemove="onMouseMove"
+    /> </div>
+    <div v-if="!hideBtns" class="imgrec-capture">
       <button
-        :class="'btn flex-center ' + buttonsClasses"
+        :class="'imgrec-btn' + buttonsClasses"
         @click.prevent="capture"
         v-if="showVideo"
       >
         {{ captureBtnContent }}
       </button>
       <div class="controls" v-else>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="cancel">
+        <button :class="'imgrec-btn ' + buttonsClasses" @click.prevent="cancel">
           {{ cancelBtnContent }}
         </button>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="done">
+        <button :class="'imgrec-btn' + buttonsClasses" @click.prevent="done">
           {{ doneBtnContent }}
         </button>
-        <button :class="'btn ' + buttonsClasses" @click.prevent="drawPen">
-          {{ drawPenBtnContent }}
-        </button>
-        <button
-          :class="'btn ' + buttonsClasses"
-          @click.prevent="drawRect"
-          id="drawRectBtn"
-        >
-          {{ drawRectBtnContent }}
+        <button :class="'imgrec-btn ' + buttonsClasses" @click.prevent="drawRectangle" id="drawRectBtn">
+          {{ drawRectangleBtnContent }}
         </button>
       </div>
     </div>
+  </div>
+
   </section>
 </template>
 
 <script>
-let markierenButtonPressed = false;
 let isActive = false;
-let isRectDraw = false;
+let isRectangleDraw = false;
 export default {
   name: "PhotoCapture",
   props: {
@@ -81,11 +80,7 @@ export default {
     doneBtnContent: {
       default: "Save",
     },
-    drawPenBtnContent: {
-      default: "Markieren",
-    },
-
-    drawRectBtnContent: {
+    drawRectangleBtnContent: {
       default: "Rechteck",
     },
   },
@@ -94,6 +89,7 @@ export default {
       showVideo: true,
       picture: null,
       isValid: true,
+      canvasImage: null,
     };
   },
   mounted() {
@@ -117,10 +113,16 @@ export default {
       this.showVideo = false;
       this.canvasElement.width = this.videoPlayer.videoWidth;
       this.canvasElement.height = this.videoPlayer.videoHeight;
-      var context = this.canvasElement.getContext("2d");
+      const context = this.canvasElement.getContext("2d");
       context.drawImage(this.$refs.player, 0, 0);
       this.stopVideoStream();
-      this.picture = this.$refs.canvas.toDataURL();
+      this.picture = this.canvasElement.toDataURL();
+      // Set the captured image as the source of an image element
+      const img = new Image();
+      img.onload = function () {
+        context.drawImage(img, 0, 0);
+      };
+      img.src = this.picture;
     },
     stopVideoStream() {
       if (!(this.$refs.player && this.$refs.player.srcObject)) return;
@@ -128,143 +130,148 @@ export default {
         track.stop();
       });
     },
-    drawPen() {
-      markierenButtonPressed = true;
+    drawRectangle() {
+      isRectangleDraw = false;
+      isActive = false;
+      let startX, startY, endX, endY;
       const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
+      // Load the captured image
+      const img = new Image();
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = this.picture;
+      // Set up the drawing settings
       ctx.strokeStyle = "red";
       ctx.lineWidth = 4;
-      let startX, startY;
+      // Set up the event listeners
+      canvas.addEventListener("mousedown", startRectangleDraw);
+      canvas.addEventListener("mouseup", stopRectangleDraw);
+      canvas.addEventListener("mouseleave", stopRectangleDraw);
+      canvas.addEventListener("mousemove", drawRectangle);
 
-      canvas.addEventListener("mousedown", startDraw);
-      canvas.addEventListener("mousemove", draw);
-      canvas.addEventListener("mouseup", stopDraw);
-      canvas.addEventListener("mouseleave", stopDraw);
-      canvas.addEventListener("touchmove", draw);
-      canvas.addEventListener("touchend", stopDraw);
-
-      function startDraw(e) {
+      function startRectangleDraw(e) {
         isActive = true;
         startX = e.clientX - canvas.offsetLeft;
         startY = e.clientY - canvas.offsetTop;
+        isRectangleDraw = true;
       }
-
-      function draw(e) {
-        if (!markierenButtonPressed || !isActive) return;
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-        ctx.stroke();
-        startX = e.clientX - canvas.offsetLeft;
-        startY = e.clientY - canvas.offsetTop;
+      function drawRectangle(e) {
+        if (!isActive) return;
+        if (isRectangleDraw) {
+          endX = e.clientX - canvas.offsetLeft;
+          endY = e.clientY - canvas.offsetTop;
+          // Clear the canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Draw the captured image
+          ctx.drawImage(img, 0, 0);
+          // Draw the rectangle
+          ctx.beginPath();
+          ctx.rect(startX, startY, endX - startX, endY - startY);
+          ctx.stroke();
+        }
       }
-
-      function stopDraw() {
+      function stopRectangleDraw() {
         isActive = false;
-        markierenButtonPressed=false;
+        isRectangleDraw = false;
+        canvas.removeEventListener("mousedown", startRectangleDraw);
+        canvas.removeEventListener("mouseup", stopRectangleDraw);
+        canvas.removeEventListener("mouseleave", stopRectangleDraw);
+        canvas.removeEventListener("mousemove", drawRectangle);
       }
     },
-
-
-    drawRect() {
-
-      let canvasImage = this.$refs.canvas;
-let isRectDraw = true;
-let isActive = true;
-let startX, startY, endX, endY;
-const canvas = this.$refs.canvas;
-const ctx = canvas.getContext("2d");
-ctx.strokeStyle = "Red  ";
-ctx.lineWidth = 4;
-
-canvas.addEventListener("mousedown", startRectDraw);
-canvas.addEventListener("mouseup", stopRectDraw);
-canvas.addEventListener("mouseleave", stopRectDraw); 
-canvas.addEventListener("mousemove", drawRect);
-
-function startRectDraw(e) {
-  isActive = true;
-  startX = e.clientX - canvas.offsetLeft;
-  startY = e.clientY - canvas.offsetTop;
-}
-
-function drawRect(e) {
-  if (!isRectDraw || !isActive) return;
-
-  endX = e.clientX - canvas.offsetLeft;
-  endY = e.clientY - canvas.offsetTop;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (canvasImage) {
-    ctx.drawImage(canvasImage, 0, 0);
-  }
-
-  ctx.beginPath();
-  ctx.rect(startX, startY, endX - startX, endY - startY);
-  ctx.stroke();
-}
-
-function stopRectDraw() {
-  isActive = false;
-  isRectDraw = false;
-  canvasImage = new Image();
-  canvasImage.src = canvas.toDataURL();
-}
-
-},
     done() {
       this.$emit("input", this.picture);
       this.showVideo = true;
       this.streamUserMediaVideo();
-      markierenButtonPressed = false;
-      isRectDrawDraw = false;
+      isActive = false;
+      isRectangleDraw = false;
     },
     cancel() {
       this.showVideo = true;
       this.streamUserMediaVideo();
-      markierenButtonPressed = false;
-      this.ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-      stopRectDraw();
-      stopDraw();
+      isRectangleDraw = false;
+      isActive = false;
     },
   },
 };
-
-/* window.addEventListener("load", () => {
-  const canvas = document.querySelector("#canvas")
-  const ctx = canvas.getContext("2D")
-
-  let painting = false;
-
-  function startPosition() {
-    painting = true
-  }
-
-  function finishedPosition() {
-    painting = false
-  }
-
-  function draw(e) {
-    if(!painting) return;
-    ctx.lineWidth = 10;
-    ctx.lineCap = "round";
-
-    ctx.lineTo(e.clientX, e.clientY);
-    ctx.stroke();
-  }
-
-  canvas.addEventListener("mousedown", startPosition);
-  canvas.addEventListener("mouseup", finishedPosition);
-  canvas.addEventListener("mousemove", draw);
-
-}); */
 </script>
 <style>
+
+
+.imgrec-content {
+  margin-left: auto;
+  margin-right: auto;
+  height: 100vh;
+  width: 80%;
+  background-color: green;
+}
+
+.imgrec-video {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+}
+
 .camera {
   width: 100%;
-  height: 100%;
+  height: 600px;
   object-fit: cover;
   filter: contrast(1.5);
   transition: filter 0.2s ease-in;
 }
+
+.imgrec-capture {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  height: 50px;
+}
+
+.imgrec-btn {
+  margin-top: 15px;
+}
+
+.imgrec-preview {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+}
+
+.preview {
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+}
+
+@media screen and (max-width: 800px) {
+  .imgrec-content {
+  margin-left: auto;
+  margin-right: auto;
+  height: 100vh;
+  width: 100%;
+  background-color: green;
+}
+.imgrec-video {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.imgrec-capture {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  height: 50px;
+  background-color: blue;
+}
+
+.imgrec-preview {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+}
+
 </style>
