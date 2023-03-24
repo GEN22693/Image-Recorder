@@ -33,12 +33,17 @@
         <button :class="'btn ' + buttonsClasses" @click.prevent="drawPen">
           {{ drawPenBtnContent }}
         </button>
+
         <button
           :class="'btn ' + buttonsClasses"
           @click.prevent="drawCircle"
           id="drawCircleBtn"
         >
           {{ drawCircleBtnContent }}
+        </button>
+
+        <button :class="'btn ' + buttonsClasses" @click.prevent="drawRectangle">
+          {{ drawRectangleBtnContent }}
         </button>
       </div>
     </div>
@@ -88,6 +93,9 @@ export default {
     drawCircleBtnContent: {
       default: "Kreis",
     },
+    drawRectangleBtnContent: {
+      default: "Rechteck",
+    },
   },
   data() {
     return {
@@ -129,6 +137,8 @@ export default {
       });
     },
     drawPen() {
+      let canvasImage;
+      isCircleDraw = false;
       markierenButtonPressed = true;
       const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
@@ -136,12 +146,7 @@ export default {
       ctx.lineWidth = 4;
       let startX, startY;
 
-      canvas.addEventListener("mousedown", startDraw);
-      canvas.addEventListener("mousemove", draw);
-      canvas.addEventListener("mouseup", stopDraw);
-      canvas.addEventListener("mouseleave", stopDraw);
-      canvas.addEventListener("touchmove", draw);
-      canvas.addEventListener("touchend", stopDraw);
+    
 
       function startDraw(e) {
         isActive = true;
@@ -151,6 +156,10 @@ export default {
 
       function draw(e) {
         if (!markierenButtonPressed || !isActive) return;
+
+        if (canvasImage) {
+          ctx.drawImage(canvasImage, 0, 0);
+        }
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
@@ -159,63 +168,115 @@ export default {
         startY = e.clientY - canvas.offsetTop;
       }
 
+      canvas.addEventListener("mousedown", startDraw);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDraw);
+      canvas.addEventListener("mouseleave", stopDraw);
+      canvas.addEventListener("touchmove", draw);
+      canvas.addEventListener("touchend", stopDraw);
+
       function stopDraw() {
         isActive = false;
+        markierenButtonPressed = false;
+        canvasImage = new Image();
+        canvasImage.src = canvas.toDataURL();
       }
     },
 
+    drawRectangle() {
+      let canvasImage;
+      let isRectangleDraw = false;
+      let isActive = false;
+      let startX, startY, endX, endY;
+      const canvas = this.$refs.canvas;
+      const ctx = canvas.getContext("2d");
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 4;
 
+      canvas.addEventListener("mousedown", startRectangleDraw);
+      canvas.addEventListener("mouseup", stopRectangleDraw);
+      canvas.addEventListener("mouseleave", stopRectangleDraw);
+      canvas.addEventListener("mousemove", drawRectangle);
+
+      function startRectangleDraw(e) {
+        isActive = true;
+        startX = e.clientX - canvas.offsetLeft;
+        startY = e.clientY - canvas.offsetTop;
+      }
+
+      function drawRectangle(e) {
+        if (!isRectangleDraw || !isActive) return;
+
+        endX = e.clientX - canvas.offsetLeft;
+        endY = e.clientY - canvas.offsetTop;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (canvasImage) {
+          ctx.drawImage(canvasImage, 0, 0);
+        }
+
+        ctx.beginPath();
+        ctx.rect(startX, startY, endX - startX, endY - startY);
+        ctx.stroke();
+      }
+
+      function stopRectangleDraw() {
+        isActive = false;
+        isRectangleDraw = true;
+        canvasImage = new Image();
+        canvasImage.src = canvas.toDataURL();
+      }
+    },
     drawCircle() {
+      let canvasImage;
+      let isCircleDraw = false;
+      let isActive = false;
+      let startX, startY, endX, endY;
+      const canvas = this.$refs.canvas;
+      const ctx = canvas.getContext("2d");
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 4;
 
-  let canvasImage;
-  let isCircleDraw = false;
-  let isActive = false;
-  let startX, startY, endX, endY;
-  const canvas = this.$refs.canvas;
-  const ctx = canvas.getContext("2d");
-  ctx.strokeStyle = "red";
-  ctx.lineWidth = 4;
+      canvas.addEventListener("mousedown", startCircleDraw);
+      canvas.addEventListener("mouseup", stopCircleDraw);
+      canvas.addEventListener("mouseleave", stopCircleDraw);
+      canvas.addEventListener("mousemove", drawCircle);
 
-  canvas.addEventListener("mousedown", startCircleDraw);
-  canvas.addEventListener("mouseup", stopCircleDraw);
-  canvas.addEventListener("mouseleave", stopCircleDraw); 
-  canvas.addEventListener("mousemove", drawCircle);
+      function getRadius() {
+        return Math.sqrt(
+          Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)
+        );
+      }
 
-  function getRadius() {
-    return Math.sqrt(
-      Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)
-    );
-  }
+      function startCircleDraw(e) {
+        isActive = true;
+        startX = e.clientX - canvas.offsetLeft;
+        startY = e.clientY - canvas.offsetTop;
+      }
 
-  function startCircleDraw(e) {
-    isActive = true;
-    startX = e.clientX - canvas.offsetLeft;
-    startY = e.clientY - canvas.offsetTop;
-  }
+      function drawCircle(e) {
+        if (!isCircleDraw || !isActive) return;
 
-  function drawCircle(e) {
-    if (!isCircleDraw || !isActive) return;
+        endX = e.clientX - canvas.offsetLeft;
+        endY = e.clientY - canvas.offsetTop;
 
-    endX = e.clientX - canvas.offsetLeft;
-    endY = e.clientY - canvas.offsetTop;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (canvasImage) {
+          ctx.drawImage(canvasImage, 0, 0);
+        }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (canvasImage) {
-      ctx.drawImage(canvasImage, 0, 0);
-    }
+        ctx.beginPath();
+        ctx.arc(startX, startY, getRadius(), 0, 2 * Math.PI);
+        ctx.stroke();
+      }
 
-    ctx.beginPath();
-    ctx.arc(startX, startY, getRadius(), 0, 2 * Math.PI);
-    ctx.stroke();
-  }
-
-  function stopCircleDraw() {
-    isActive = false;
-    isCircleDraw = true;
-    canvasImage = new Image();
-    canvasImage.src = canvas.toDataURL();
-  }
-},
+      function stopCircleDraw() {
+        isActive = false;
+        isCircleDraw = true;
+        canvasImage = new Image();
+        canvasImage.src = canvas.toDataURL();
+      }
+    },
     done() {
       this.$emit("input", this.picture);
       this.showVideo = true;
