@@ -36,7 +36,7 @@
           {{ doneBtnContent }}
         </button>
         <button :class="'imgrec-btn ' + buttonsClasses" @click.prevent="drawRectangle" id="drawRectBtn">
-          {{ drawRectangleBtnContent }}
+          {{ drawRectBtnContent }}
         </button>
       </div>
     </div>
@@ -216,7 +216,6 @@ export default {
 
 .camera {
   width: 100%;
-  height: 600px;
   object-fit: cover;
   filter: contrast(1.5);
   transition: filter 0.2s ease-in;
@@ -241,7 +240,6 @@ export default {
 
 .preview {
   width: 100%;
-  height: 600px;
   object-fit: cover;
 }
 
