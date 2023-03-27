@@ -205,7 +205,7 @@ export default {
   margin-right: auto;
   height: 100vh;
   width: 80%;
-  background-color: green;
+  background-color: transparent;
 }
 
 .imgrec-video {
@@ -216,6 +216,7 @@ export default {
 
 .camera {
   width: 100%;
+  height: 600px;
   object-fit: cover;
   filter: contrast(1.5);
   transition: filter 0.2s ease-in;
@@ -240,36 +241,51 @@ export default {
 
 .preview {
   width: 100%;
+  height: 600px;
   object-fit: cover;
 }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 1000px) {
   .imgrec-content {
-  margin-left: auto;
-  margin-right: auto;
-  height: 100vh;
-  width: 100%;
-  background-color: green;
-}
-.imgrec-video {
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-}
+    height: 100vh;
+    width: 100%;
+    background-color: green;
+  }
 
-.imgrec-capture {
-  margin-left: auto;
-  margin-right: auto;
-  width: 80%;
-  height: 50px;
-  background-color: blue;
-}
+  .imgrec-video {
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    background-color: transparent;
+  }
 
-.imgrec-preview {
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-}
+  .camera {
+    width: 100%;
+    height: 99vh;
+    object-fit: cover;
+    filter: contrast(1.5);
+    transition: filter 0.2s ease-in;
+  }
+
+  .imgrec-capture {
+    position: absolute;
+    width: 100%;
+    height: 80px;
+    background-color: blue;
+    bottom: 0px;
+  }
+
+  .imgrec-preview {
+    position: absolute;
+    width: 100%;
+    height: 100vh;
+  }
+
+  .preview {
+    object-fit: cover;
+    height: 100vh;
+    width: 100%;
+  }
 }
 
 </style>
