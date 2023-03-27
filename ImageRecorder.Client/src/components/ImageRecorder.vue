@@ -2,46 +2,54 @@
   <section :style="styling" v-if="isValid" class="photo-capture">
     <div class="imgrec-content">
       <div class="imgrec-video">
-      <video
-      v-show="showVideo"
-      ref="player"
-      class="camera"
-      autoplay
-      playsinline
-    /></div>
-    <div class="imgrec-preview">
-    <canvas
-      v-show="!showVideo"
-      id="canvas"
-      class="preview"
-      ref="canvas"
-      @mousedown="onMouseDown"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseLeave"
-      @mousemove="onMouseMove"
-    /> </div>
-    <div v-if="!hideBtns" class="imgrec-capture">
-      <button
-        :class="'imgrec-btn' + buttonsClasses"
-        @click.prevent="capture"
-        v-if="showVideo"
-      >
-        {{ captureBtnContent }}
-      </button>
-      <div class="controls" v-else>
-        <button :class="'imgrec-btn ' + buttonsClasses" @click.prevent="cancel">
-          {{ cancelBtnContent }}
+        <video
+          v-show="showVideo"
+          ref="player"
+          class="camera"
+          autoplay
+          playsinline
+        />
+      </div>
+      <div class="imgrec-preview">
+        <canvas
+          v-show="!showVideo"
+          id="canvas"
+          class="preview"
+          ref="canvas"
+          @mousedown="onMouseDown"
+          @mouseup="onMouseUp"
+          @mouseleave="onMouseLeave"
+          @mousemove="onMouseMove"
+        />
+      </div>
+      <div v-if="!hideBtns" class="imgrec-capture">
+        <button
+          :class="'imgrec-btn' + buttonsClasses"
+          @click.prevent="capture"
+          v-if="showVideo"
+        >
+          {{ captureBtnContent }}
         </button>
-        <button :class="'imgrec-btn' + buttonsClasses" @click.prevent="done">
-          {{ doneBtnContent }}
-        </button>
-        <button :class="'imgrec-btn ' + buttonsClasses" @click.prevent="drawRectangle" id="drawRectBtn">
-          {{ drawRectBtnContent }}
-        </button>
+        <div class="controls" v-else>
+          <button
+            :class="'imgrec-btn ' + buttonsClasses"
+            @click.prevent="cancel"
+          >
+            {{ cancelBtnContent }}
+          </button>
+          <button :class="'imgrec-btn' + buttonsClasses" @click.prevent="done">
+            {{ doneBtnContent }}
+          </button>
+          <button
+            :class="'imgrec-btn ' + buttonsClasses"
+            @click.prevent="drawRectangle"
+            id="drawRectBtn"
+          >
+            {{ drawRectBtnContent }}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-
   </section>
 </template>
 
@@ -160,15 +168,18 @@ export default {
       function drawRectangle(e) {
         if (!isActive) return;
         if (isRectangleDraw) {
-          endX = e.clientX - canvas.offsetLeft;
-          endY = e.clientY - canvas.offsetTop;
           // Clear the canvas
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           // Draw the captured image
           ctx.drawImage(img, 0, 0);
           // Draw the rectangle
           ctx.beginPath();
-          ctx.rect(startX, startY, endX - startX, endY - startY);
+          ctx.rect(
+            startX,
+            startY,
+            e.pageX - canvas.offsetLeft - startX,
+            e.pageY - canvas.offsetTop - startY
+          );
           ctx.stroke();
         }
       }
@@ -198,13 +209,11 @@ export default {
 };
 </script>
 <style>
-
-
 .imgrec-content {
   margin-left: auto;
   margin-right: auto;
   height: 100vh;
-  width: 80%;
+  width: 100vw;
   background-color: transparent;
 }
 
@@ -239,11 +248,7 @@ export default {
   width: 80%;
 }
 
-.preview {
-  width: 100%;
-  height: 600px;
-  object-fit: cover;
-}
+
 
 @media screen and (max-width: 1000px) {
   .imgrec-content {
@@ -280,12 +285,5 @@ export default {
     width: 100%;
     height: 100vh;
   }
-
-  .preview {
-    object-fit: cover;
-    height: 100vh;
-    width: 100%;
-  }
 }
-
 </style>
