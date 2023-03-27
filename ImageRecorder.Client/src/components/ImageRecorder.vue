@@ -80,7 +80,7 @@ export default {
     doneBtnContent: {
       default: "Save",
     },
-    drawRectangleBtnContent: {
+    drawRectBtnContent: {
       default: "Rechteck",
     },
   },
