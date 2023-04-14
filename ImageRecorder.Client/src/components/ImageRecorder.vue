@@ -16,7 +16,6 @@
           id="canvas"
           class="preview"
           ref="canvas"
-          width="800px"
           @mousedown="onMouseDown"
           @mouseup="onMouseUp"
           @mouseleave="onMouseLeave"
@@ -242,6 +241,9 @@ export default {
   margin-right: auto;
   width: 80%;
 }
+
+
+
 @media screen and (max-width: 1000px) {
   .imgrec-content {
     height: 100vh;
