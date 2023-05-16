@@ -1,147 +1,107 @@
 <template>
-  <section :style="styling" v-if="isValid" class="photo-capture">
-    <div class="imgrec-content">
-      <div class="imgrec-video">
-        <video
-          v-show="showVideo"
-          ref="player"
-          class="camera"
-          autoplay
-          playsinline
-        />
-      </div>
-      <div class="imgrec-preview">
-        <canvas
-          v-show="!showVideo"
-          id="canvas"
-          class="preview"
-          ref="canvas"
-          @mousedown="onMouseDown"
-          @mouseup="onMouseUp"
-          @mouseleave="onMouseLeave"
-          @mousemove="onMouseMove"
-        />
-      </div>
-      <div v-if="!hideBtns" class="imgrec-capture">
-        <button
-          :class="'imgrec-btn' + buttonsClasses"
-          @click.prevent="capture"
-          v-if="showVideo"
-        >
-          {{ captureBtnContent }}
-        </button>
-        <div class="controls" v-else>
-          <button
-            :class="'imgrec-btn ' + buttonsClasses"
-            @click.prevent="cancel"
-          >
-            {{ cancelBtnContent }}
-          </button>
-          <button :class="'imgrec-btn' + buttonsClasses" @click.prevent="done">
-            {{ doneBtnContent }}
-          </button>
-          <button
-            :class="'imgrec-btn ' + buttonsClasses"
-            @click.prevent="drawRectangle"
-            id="drawRectBtn"
-          >
-            {{ drawRectBtnContent }}
-          </button>
-        </div>
-      </div>
+  <div>
+    <video ref="video" v-show="showVideo"></video>
+    <div class="div-canvas" v-show="!showVideo">
+      <canvas
+        ref="canvas"
+        v-show="!showVideo"
+        @mousedown="onMouseDown"
+        @mouseup="onMouseUp"
+        @mouseleave="onMouseLeave"
+        @mousemove="onMouseMove"
+      >
+      </canvas>
     </div>
-  </section>
+    <div class="button-container-imgrec">
+      <Button
+        icon="pi pi-camera"
+        class="p-button-success p-button-rounded button-resize-imgrec"
+        v-if="showButton"
+        @click.prevent="capture()"
+      >
+      </Button>
+      <Button
+        icon="pi pi-check-circle"
+        class="p-button-success p-button-rounded button-resize-imgrec"
+        v-if="!showButton"
+        @click.prevent="done()"
+      >
+      </Button>
+      <Button
+        v-if="!showButton"
+        icon="pi pi-pencil"
+        class="p-button-warning p-button-rounded button-abstand-imgrec"
+        @click.prevent="drawRectangle()"
+      />
+      <Button
+        v-if="!showButton"
+        icon="pi pi-times"
+        class="p-button-danger p-button-rounded button-abstand-imgrec2"
+        @click.prevent="cancel()"
+      />
+    </div>
+  </div>
 </template>
 
 <script>
 let isActive = false;
 let isRectangleDraw = false;
 export default {
-  name: "PhotoCapture",
-  props: {
-    hideBtns: {
-      type: Boolean,
-      isRequired: false,
-      default: false,
-    },
-    styling: {
-      type: Object,
-      isRequired: false,
-    },
-    value: {
-      default: null,
-    },
-    hideButtons: {
-      type: Boolean,
-      default: false,
-    },
-    buttonsClasses: {
-      type: String,
-      default: "",
-    },
-    captureBtnContent: {
-      default: "Capture",
-    },
-    cancelBtnContent: {
-      default: "Cancel",
-    },
-    doneBtnContent: {
-      default: "Save",
-    },
-    drawRectBtnContent: {
-      default: "Rechteck",
-    },
-  },
+  /*props: {
+      hideBtns: {
+        type: Boolean,
+        isRequired: false,
+        default: false,
+      },
+   }, */
   data() {
     return {
       showVideo: true,
-      picture: null,
-      isValid: true,
-      canvasImage: null,
+      showButton: true,
+      capturedImage: null,
     };
   },
   mounted() {
-    this.videoPlayer = this.$refs.player;
-    this.canvasElement = this.$refs.canvas;
-    this.streamUserMediaVideo();
+    this.initCamera();
   },
+
   methods: {
-    streamUserMediaVideo() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        return;
-      }
+    initCamera() {
       navigator.mediaDevices
         .getUserMedia({ video: true })
-        .then((stream) => (this.videoPlayer.srcObject = stream))
-        .catch(() => {
-          this.isValid = false;
+        .then((stream) => {
+          this.$refs.video.srcObject = stream;
+          this.$refs.video.play();
+        })
+        .catch((error) => {
+          console.error("Kamerazugriff fehlgeschlagen: ", error);
         });
     },
     capture() {
       this.showVideo = false;
-      this.canvasElement.width = 800;
-      this.canvasElement.height = 600;
-      const context = this.canvasElement.getContext("2d");
-      context.drawImage(this.$refs.player, 0, 0, 800, 600);
-      this.stopVideoStream();
-      this.picture = this.canvasElement.toDataURL();
-      // Set the captured image as the source of an image element
+      this.showButton = false;
+      const video = this.$refs.video;
+      const canvas = this.$refs.canvas;
+      const context = canvas.getContext("2d");
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      this.capturedImage = canvas.toDataURL();
+
       const img = new Image();
       img.onload = function () {
-        context.drawImage(img, 0, 0);
+          context.drawImage(img, 0, 0);
       };
-      img.src = this.picture;
+      img.src = this.capturedImage;
     },
-    stopVideoStream() {
-      if (!(this.$refs.player && this.$refs.player.srcObject)) return;
-      this.$refs.player.srcObject.getVideoTracks().forEach((track) => {
-        track.stop();
-      });
-    },
+
     drawRectangle() {
       isRectangleDraw = false;
       isActive = false;
-      let startX, startY, endX, endY;
+      let startX, startY;
       const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
       // Load the captured image
@@ -149,7 +109,7 @@ export default {
       img.onload = function () {
         ctx.drawImage(img, 0, 0);
       };
-      img.src = this.picture;
+      img.src = this.capturedImage;
       // Set up the drawing settings
       ctx.strokeStyle = "red";
       ctx.lineWidth = 4;
@@ -190,90 +150,85 @@ export default {
         canvas.removeEventListener("mouseleave", stopRectangleDraw);
         canvas.removeEventListener("mousemove", drawRectangle);
       }
+
     },
+
     done() {
-      this.$emit("input", this.picture);
+      const canvas = this.$refs.canvas;
+      const context = canvas.getContext("2d");
+      this.capturedImage = canvas.toDataURL();
+
+      const img = new Image();
+      img.onload = function () {
+          context.drawImage(img, 0, 0);
+      };
+      img.src = this.capturedImage;
+
+      this.$emit("recorded", this.capturedImage);
       this.showVideo = true;
-      this.streamUserMediaVideo();
-      isActive = false;
-      isRectangleDraw = false;
     },
     cancel() {
       this.showVideo = true;
-      this.streamUserMediaVideo();
-      isRectangleDraw = false;
-      isActive = false;
+      this.showButton = true;
     },
   },
 };
 </script>
+
 <style>
-.imgrec-content {
+video {
+  margin-top: 25px;
+  width: 100%;
+  height: 80vh;
+  filter: contrast(1);
+}
+
+.div-canvas {
+  margin-top: 25px;
   margin-left: auto;
   margin-right: auto;
-  height: 100vh;
-  width: 100vw;
+  width: fit-content;
+}
+
+.button-container-imgrec {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 15px;
+  width: fit-content;
+  height: auto;
   background-color: transparent;
 }
-.imgrec-video {
-  margin-left: auto;
-  margin-right: auto;
-  width: 80%;
-}
-.camera {
-  width: 800px;
-  height: 600px;
-  object-fit: cover;
-  filter: contrast(1.5);
-  transition: filter 0.2s ease-in;
-}
-.imgrec-capture {
-  margin-left: auto;
-  margin-right: auto;
-  width: 80%;
-  height: 50px;
-}
-.imgrec-btn {
-  margin-top: 15px;
-}
-.imgrec-preview {
-  margin-left: auto;
-  margin-right: auto;
-  width: 80%;
+
+.button-abstand-imgrec {
+  left: 15px;
 }
 
+.button-abstand-imgrec2 {
+  left: 30px;
+}
 
+.button-resize-imgrec {
+  margin-left: -15px;
+}
 
 @media screen and (max-width: 1000px) {
-  .imgrec-content {
-    height: 100vh;
-    width: 100%;
-    background-color: green;
-  }
-  .imgrec-video {
-    width: 100%;
-    height: 100vh;
-    position: absolute;
-    background-color: transparent;
-  }
-  .camera {
+  video {
     width: 100%;
     height: 99vh;
     object-fit: cover;
-    filter: contrast(1.5);
+    filter: contrast(1);
     transition: filter 0.2s ease-in;
   }
-  .imgrec-capture {
-    position: absolute;
-    width: 100%;
-    height: 80px;
-    background-color: blue;
-    bottom: 0px;
+  .div-canvas {
+    margin-top: 25px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: green;
   }
-  .imgrec-preview {
-    position: absolute;
+  canvas {
     width: 100%;
-    height: 100vh;
+    height: auto;
+    display: block;
   }
 }
 </style>
