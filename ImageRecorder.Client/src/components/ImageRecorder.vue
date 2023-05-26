@@ -155,6 +155,7 @@ export default {
             img.src = this.capturedImage;
             this.$emit("recorded", this.capturedImage);
             this.showVideo = true;
+            this.showButton = true;
         },
         cancel() {
             this.showVideo = true;
