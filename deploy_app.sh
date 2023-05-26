@@ -75,7 +75,7 @@ if [ $CREATE_APP = y ]; then
 
     ACR_USER=$(az acr credential show --name $ACR_NAME --query username -o tsv)
     ACR_PASS=$(az acr credential show --name $ACR_NAME --query passwords[0].value -o tsv)
-    az appservice plan create        --name ${DNS_NAME}-plan --resource-group $AZ_GROUP --is-linux --location $LOCATION --sku F1 > /dev/null
+    az appservice plan create        --name ${DNS_NAME}-plan --resource-group $AZ_GROUP --is-linux --location $LOCATION --sku S1 > /dev/null
     az webapp create                 --name $DNS_NAME        --resource-group $AZ_GROUP --plan ${DNS_NAME}-plan  --deployment-container-image-name $ACR_NAME.azurecr.io/$DOCKER_IMAGENAME:v1 --docker-registry-server-user $ACR_USER --docker-registry-server-password $ACR_PASS  > /dev/null
     
     # GENERATE LOCAL ENVIRONMENTS FOR THE APP SERVICE
