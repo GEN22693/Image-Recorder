@@ -66,8 +66,23 @@ export default {
   },
   methods: {
     initCamera() {
+      const constraints = {
+        video: true,
+      };
+
+      if (
+        navigator.mediaDevices &&
+        navigator.mediaDevices.getUserMedia &&
+        typeof navigator.mediaDevices.getSupportedConstraints === "function" &&
+        navigator.mediaDevices.getSupportedConstraints().facingMode
+      ) {
+        constraints.video = {
+          facingMode: { exact: "environment" },
+        };
+      }
+
       navigator.mediaDevices
-        .getUserMedia({ video: true })
+        .getUserMedia(constraints)
         .then((stream) => {
           this.$refs.video.srcObject = stream;
           this.$refs.video.play();
