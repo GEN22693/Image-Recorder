@@ -9,6 +9,9 @@
         @mouseup="onMouseUp"
         @mouseleave="onMouseLeave"
         @mousemove="onMouseMove"
+        @touchstart="onTouchStart"
+        @touchend="onTouchEnd"
+        @touchmove="onTouchMove"
       >
       </canvas>
     </div>
@@ -44,125 +47,150 @@
 </template>
 
 <script>
-import Button from 'primevue/button';
-
+import Button from "primevue/button";
 
 let isActive = false;
 let isRectangleDraw = false;
+
 export default {
-    /*props: {
-        hideBtns: {
-          type: Boolean,
-          isRequired: false,
-          default: false,
-        },
-     }, */
-    data() {
-        return {
-            showVideo: true,
-            showButton: true,
-            capturedImage: null,
-        };
+  data() {
+    return {
+      showVideo: true,
+      showButton: true,
+      capturedImage: null,
+      touchIdentifier: null,
+    };
+  },
+  mounted() {
+    this.initCamera();
+  },
+  methods: {
+    initCamera() {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          this.$refs.video.srcObject = stream;
+          this.$refs.video.play();
+        })
+        .catch((error) => {
+          console.error("Kamerazugriff fehlgeschlagen: ", error);
+        });
     },
-    mounted() {
-        this.initCamera();
+    capture() {
+      this.showVideo = false;
+      this.showButton = false;
+      const video = this.$refs.video;
+      const canvas = this.$refs.canvas;
+      const context = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      this.capturedImage = canvas.toDataURL();
+      const img = new Image();
+      img.onload = function () {
+        context.drawImage(img, 0, 0);
+      };
+      img.src = this.capturedImage;
     },
-    methods: {
-        initCamera() {
-            navigator.mediaDevices
-                .getUserMedia({ video: true })
-                .then((stream) => {
-                this.$refs.video.srcObject = stream;
-                this.$refs.video.play();
-            })
-                .catch((error) => {
-                console.error("Kamerazugriff fehlgeschlagen: ", error);
-            });
-        },
-        capture() {
-            this.showVideo = false;
-            this.showButton = false;
-            const video = this.$refs.video;
-            const canvas = this.$refs.canvas;
-            const context = canvas.getContext("2d");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            this.capturedImage = canvas.toDataURL();
-            const img = new Image();
-            img.onload = function () {
-                context.drawImage(img, 0, 0);
-            };
-            img.src = this.capturedImage;
-        },
-        drawRectangle() {
-            isRectangleDraw = false;
-            isActive = false;
-            let startX, startY;
-            const canvas = this.$refs.canvas;
-            const ctx = canvas.getContext("2d");
-            // Load the captured image
-            const img = new Image();
-            img.onload = function () {
-                ctx.drawImage(img, 0, 0);
-            };
-            img.src = this.capturedImage;
-            // Set up the drawing settings
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 4;
-            // Set up the event listeners
-            canvas.addEventListener("mousedown", startRectangleDraw);
-            canvas.addEventListener("mouseup", stopRectangleDraw);
-            canvas.addEventListener("mouseleave", stopRectangleDraw);
-            canvas.addEventListener("mousemove", drawRectangle);
-            function startRectangleDraw(e) {
-                isActive = true;
-                startX = e.clientX - canvas.offsetLeft;
-                startY = e.clientY - canvas.offsetTop;
-                isRectangleDraw = true;
+    drawRectangle() {
+      isRectangleDraw = false;
+      isActive = false;
+      let startX, startY;
+      const canvas = this.$refs.canvas;
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = this.capturedImage;
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 4;
+
+      canvas.addEventListener("mousedown", startRectangleDraw);
+      canvas.addEventListener("mouseup", stopRectangleDraw);
+      canvas.addEventListener("mouseleave", stopRectangleDraw);
+      canvas.addEventListener("mousemove", drawRectangle);
+
+      canvas.addEventListener("touchstart", startRectangleDraw);
+      canvas.addEventListener("touchend", stopRectangleDraw);
+      canvas.addEventListener("touchmove", drawRectangle);
+
+      function startRectangleDraw(e) {
+        isActive = true;
+        isRectangleDraw = true;
+        if (e.touches) {
+          const touch = e.touches[0];
+          startX = touch.clientX - canvas.offsetLeft;
+          startY = touch.clientY - canvas.offsetTop;
+          this.touchIdentifier = touch.identifier;
+        } else {
+          startX = e.clientX - canvas.offsetLeft;
+          startY = e.clientY - canvas.offsetTop;
+        }
+      }
+
+      function drawRectangle(e) {
+        if (!isActive) return;
+        if (isRectangleDraw) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          ctx.beginPath();
+          if (e.touches) {
+            const touch = Array.from(e.touches).find(
+              (t) => t.identifier === this.touchIdentifier
+            );
+            if (touch) {
+              ctx.rect(
+                startX,
+                startY,
+                touch.pageX - canvas.offsetLeft - startX,
+                touch.pageY - canvas.offsetTop - startY
+              );
             }
-            function drawRectangle(e) {
-                if (!isActive)
-                    return;
-                if (isRectangleDraw) {
-                    // Clear the canvas
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    // Draw the captured image
-                    ctx.drawImage(img, 0, 0);
-                    // Draw the rectangle
-                    ctx.beginPath();
-                    ctx.rect(startX, startY, e.pageX - canvas.offsetLeft - startX, e.pageY - canvas.offsetTop - startY);
-                    ctx.stroke();
-                }
-            }
-            function stopRectangleDraw() {
-                isActive = false;
-                isRectangleDraw = false;
-                canvas.removeEventListener("mousedown", startRectangleDraw);
-                canvas.removeEventListener("mouseup", stopRectangleDraw);
-                canvas.removeEventListener("mouseleave", stopRectangleDraw);
-                canvas.removeEventListener("mousemove", drawRectangle);
-            }
-        },
-        done() {
-            const canvas = this.$refs.canvas;
-            const context = canvas.getContext("2d");
-            this.capturedImage = canvas.toDataURL();
-            const img = new Image();
-            img.onload = function () {
-                context.drawImage(img, 0, 0);
-            };
-            img.src = this.capturedImage;
-            this.$emit("recorded", this.capturedImage);
-            this.showVideo = true;
-            this.showButton = true;
-        },
-        cancel() {
-            this.showVideo = true;
-            this.showButton = true;
-        },
+          } else {
+            ctx.rect(
+              startX,
+              startY,
+              e.pageX - canvas.offsetLeft - startX,
+              e.pageY - canvas.offsetTop - startY
+            );
+          }
+          ctx.stroke();
+        }
+      }
+
+      function stopRectangleDraw() {
+        isActive = false;
+        isRectangleDraw = false;
+        canvas.removeEventListener("mousedown", startRectangleDraw);
+        canvas.removeEventListener("mouseup", stopRectangleDraw);
+        canvas.removeEventListener("mouseleave", stopRectangleDraw);
+        canvas.removeEventListener("mousemove", drawRectangle);
+
+        canvas.removeEventListener("touchstart", startRectangleDraw);
+        canvas.removeEventListener("touchend", stopRectangleDraw);
+        canvas.removeEventListener("touchmove", drawRectangle);
+      }
     },
-    components: { Button, Button }
+    done() {
+      const canvas = this.$refs.canvas;
+      const context = canvas.getContext("2d");
+      this.capturedImage = canvas.toDataURL();
+      const img = new Image();
+      img.onload = function () {
+        context.drawImage(img, 0, 0);
+      };
+      img.src = this.capturedImage;
+      this.$emit("recorded", this.capturedImage);
+      this.showVideo = true;
+      this.showButton = true;
+    },
+    cancel() {
+      this.showVideo = true;
+      this.showButton = true;
+    },
+  },
+  components: { Button, Button },
 };
 </script>
 
