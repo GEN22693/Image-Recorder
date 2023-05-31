@@ -70,17 +70,6 @@ export default {
         video: true,
       };
 
-      if (
-        navigator.mediaDevices &&
-        navigator.mediaDevices.getUserMedia &&
-        typeof navigator.mediaDevices.getSupportedConstraints === "function" &&
-        navigator.mediaDevices.getSupportedConstraints().facingMode
-      ) {
-        constraints.video = {
-          facingMode: { exact: "environment" },
-        };
-      }
-
       navigator.mediaDevices
         .getUserMedia(constraints)
         .then((stream) => {
