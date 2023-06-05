@@ -42,13 +42,6 @@
         class="p-button-danger p-button-rounded button-abstand-imgrec2"
         @click.prevent="cancel()"
       />
-      <Button
-      v-if="showVideo"
-      label="Start Camera"
-      class="p-button-success p-button-rounded"
-      @click.prevent="startVideoPlayback"
-    />
-
     </div>
   </div>
 </template>
@@ -73,8 +66,15 @@ export default {
   },
   methods: {
     initCamera() {
+      const isMobileDevice =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
       const constraints = {
-        video: true,
+        video: isMobileDevice
+          ? { facingMode: { exact: "environment" } } // Use rear-facing camera on mobile devices
+          : true, // Use default camera on laptops
       };
 
       navigator.mediaDevices
@@ -84,7 +84,7 @@ export default {
           this.$refs.video.play();
         })
         .catch((error) => {
-          console.error("Kamerazugriff fehlgeschlagen: ", error);
+          console.error("Failed to access camera: ", error);
         });
     },
     capture() {
@@ -200,13 +200,6 @@ export default {
       this.showVideo = true;
       this.showButton = true;
     },
-    startVideoPlayback() {
-    const video = this.$refs.video;
-    video.play()
-      .catch((error) => {
-        console.error("Failed to start video playback: ", error);
-      });
-  }
   },
   components: { Button, Button },
 };
