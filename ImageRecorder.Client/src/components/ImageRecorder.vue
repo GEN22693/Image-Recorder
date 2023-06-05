@@ -1,6 +1,6 @@
 <template>
   <div>
-    <video ref="video" v-show="showVideo"></video>
+    <video ref="video" v-show="showVideo" playsinline="true"></video>
     <div class="div-canvas" v-show="!showVideo">
       <canvas
         ref="canvas"
