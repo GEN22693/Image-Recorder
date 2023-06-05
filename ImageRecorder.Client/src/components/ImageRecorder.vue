@@ -42,6 +42,13 @@
         class="p-button-danger p-button-rounded button-abstand-imgrec2"
         @click.prevent="cancel()"
       />
+      <Button
+      v-if="showVideo"
+      label="Start Camera"
+      class="p-button-success p-button-rounded"
+      @click.prevent="startVideoPlayback"
+    />
+
     </div>
   </div>
 </template>
@@ -193,6 +200,13 @@ export default {
       this.showVideo = true;
       this.showButton = true;
     },
+    startVideoPlayback() {
+    const video = this.$refs.video;
+    video.play()
+      .catch((error) => {
+        console.error("Failed to start video playback: ", error);
+      });
+  }
   },
   components: { Button, Button },
 };
